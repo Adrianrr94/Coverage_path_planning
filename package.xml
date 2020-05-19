@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <package>
-  <name>cpp_uav</name>
+  <name>zig_zag_trajectory</name>
   <version>0.1.0</version>
   <description>The package for aerial coverage path planning.</description>
 

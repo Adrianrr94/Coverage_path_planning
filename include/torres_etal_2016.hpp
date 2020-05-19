@@ -62,7 +62,7 @@ inline bool isClockWise(const PointVector& path)
  * @param polygon Line sweep direction is calculated on this region
  * @return direction Struct containing edge and vertex
  */
-Direction identifyOptimalSweepDir(const PointVector& polygon)
+Direction identifyOptimalSweepDir(const PointVector& polygon, double& distance)
 {
   Direction sweepDirection;
 
@@ -91,39 +91,44 @@ Direction identifyOptimalSweepDir(const PointVector& polygon)
     edges.push_back(ar);
   }
 
-  double optimalDistance = 0;
+  double min_y, max_y, min_x, max_x;
+  int cont = 0;
 
   // Calculate line sweep direction
-  // Algorithm 1 in Torres et al, 2016
-  for (const auto& edge : edges | boost::adaptors::indexed())
+  for (const geometry_msgs::Point& vertex : convexHull)
   {
-    double edgeMaxDistance = 0;
-    geometry_msgs::Point opposedVertex;
-
-    for (const geometry_msgs::Point& vertex : convexHull)
-    {
-      // calculateDistance() function returns distance
-      // between given edge and vertex
-      double distance = calculateDistance(edge.value(), vertex);
-
-      if (distance > edgeMaxDistance)
-      {
-        edgeMaxDistance = distance;
-        opposedVertex = vertex;
-      }
+    if(cont = 0){
+      min_y = vertex.y;
+      max_y = vertex.y;
+      min_x = vertex.x;
+      max_x = vertex.x;
     }
-
-    if ((edgeMaxDistance < optimalDistance) or edge.index() == 0)
-    {
-      optimalDistance = edgeMaxDistance;
-      sweepDirection.baseEdge = edge.value();
-      sweepDirection.opposedVertex = opposedVertex;
+    if(vertex.y > max_y){
+      max_y = vertex.y;
+      max_x = vertex.x;
     }
+    else if (vertex.y < min_y){
+      min_y = vertex.y;
+      max_x = vertex.x;
+    }
+    cont++;
   }
+  geometry_msgs::Point p1,p2,p3;
+  p1.x = max_x;
+  p1.y = max_y;
+  p2.x = max_x;
+  p2.y = min_y;
+  p3.x = min_x;
+  p3.y = min_y;
+  distance = calculateDistance(p1,p2);
+  sweepDirection.opposedVertex = p1;
+  LineSegment edge;
+  edge[0] = p2;
+  edge[1] = p3;
+  sweepDirection.baseEdge = edge;
 
   return sweepDirection;
 }
-
 /**
  * @brief Reshape given path
  * @param path The sweep lines of path should be horizontal about x axis
@@ -258,7 +263,7 @@ PointVector reshapePath(const PointVector& path, double padding)
  * @return bool True if path does not intersect with polygon
  */
 bool computeConvexCoverage(const PointVector& polygon, double footprintWidth, double horizontalOverwrap,
-                           const Direction& sweepDirection, PointVector& path)
+                           const Direction& sweepDirection, double distance, PointVector& path)
 {
   // Unable to make polygon with less than 3 points
   if (polygon.size() < 3)
@@ -268,10 +273,10 @@ bool computeConvexCoverage(const PointVector& polygon, double footprintWidth, do
 
   // TODO: Change to configurable
   const double padding = footprintWidth/2.0;
-
+  PointVector rotatedPolygon = polygon;
   // rotate input polygon so that baseEdge become horizontal
-  double rotationAngle = calculateHorizontalAngle(sweepDirection.baseEdge.front(), sweepDirection.baseEdge.back());
-  PointVector rotatedPolygon = rotatePoints(polygon, -rotationAngle);
+  //double rotationAngle = calculateHorizontalAngle(sweepDirection.baseEdge.front(), sweepDirection.baseEdge.back());
+  //PointVector rotatedPolygon = rotatePoints(polygon, -rotationAngle);
 
   // find x coordinate of most left and most right point
   double minX(0), maxX(0);
@@ -290,14 +295,14 @@ bool computeConvexCoverage(const PointVector& polygon, double footprintWidth, do
   double stepWidth = footprintWidth * (1 - horizontalOverwrap);
 
   // calculate sweep direction of rotated polygon
-  PointVector dir{ sweepDirection.opposedVertex, sweepDirection.baseEdge.front(), sweepDirection.baseEdge.back() };
-  dir = rotatePoints(dir, -rotationAngle);
-  Direction rotatedDir;
-  rotatedDir.opposedVertex = dir.at(0);
-  rotatedDir.baseEdge.front() = dir.at(1);
-  rotatedDir.baseEdge.back() = dir.at(2);
+  // PointVector dir{ sweepDirection.opposedVertex, sweepDirection.baseEdge.front(), sweepDirection.baseEdge.back() };
+  // dir = rotatePoints(dir, -rotationAngle);
+  // Direction rotatedDir;
+  // rotatedDir.opposedVertex = dir.at(0);
+  // rotatedDir.baseEdge.front() = dir.at(1);
+  // rotatedDir.baseEdge.back() = dir.at(2);
 
-  int stepNum = std::ceil(calculateDistance(rotatedDir.baseEdge, rotatedDir.opposedVertex) / stepWidth);
+  int stepNum = std::ceil(distance / stepWidth);
 
   LineSegmentVector sweepLines;
 
@@ -347,7 +352,8 @@ bool computeConvexCoverage(const PointVector& polygon, double footprintWidth, do
 
   PointVector rotatedPath = reshapePath(intersections, padding);
 
-  path = rotatePoints(rotatedPath, rotationAngle);
+  //path = rotatePoints(rotatedPath, rotationAngle);
+  path = rotatedPath;
 
   if (hasIntersection(generateEdgeVector(polygon, true), generateEdgeVector(path, false)) == true)
   {
@@ -368,8 +374,9 @@ bool computeConvexCoverage(const PointVector& polygon, double footprintWidth, do
 bool computeConvexCoverage(const PointVector& polygon, double footprintWidth, double horizontalOverwrap,
                            PointVector& path)
 {
-  Direction sweepDirection = identifyOptimalSweepDir(polygon);
-  return computeConvexCoverage(polygon, footprintWidth, horizontalOverwrap, sweepDirection, path);
+  double distance;
+  Direction sweepDirection = identifyOptimalSweepDir(polygon, distance);
+  return computeConvexCoverage(polygon, footprintWidth, horizontalOverwrap, sweepDirection, distance, path);
 }
 
 /**

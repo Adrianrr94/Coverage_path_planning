@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(cpp_uav)
+project(zig_zag_trajectory)
 
 add_compile_options(-std=c++11)
 
