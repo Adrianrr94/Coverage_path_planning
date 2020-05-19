@@ -116,40 +116,7 @@ bool plan(cpp_uav::Torres16::Request& req, cpp_uav::Torres16::Response& res)
       pathLengthSum += calculatePathLength(partialPath);
     }
 
-    // existsSecondOptimalPath is true if there is at least one coverage that has no intersection with polygon
-    // second optimal path is the path that has second shortest sweep direction and no intersection with polygon
-    PointVector secondOptimalPath;
-    bool existsSecondOptimalPath =
-        findSecondOptimalPath(polygon, footprintWidth.data, horizontalOverwrap.data, candidatePath);
-
-    if (existsSecondOptimalPath == true)
-    {
-      // compute optimal alternative for second optimal path
-      secondOptimalPath = identifyOptimalAlternative(polygon, candidatePath, start);
-
-      // if the length of second optimal path is shorter than the sum of coverage path of subpolygons,
-      // set second optimal path as the path
-      if (pathLengthSum > calculatePathLength(secondOptimalPath))
-      {
-        // fill "subpolygon" field of response so that polygon is visualized
-        res.subpolygons = generatePolygonVector(polygon);
-
-        res.path = secondOptimalPath;
-
-        return true;
-
-      }
-      // returns second optimal path when shortest path is not optimal and polygon cannot be decomposed
-      else if(subPolygons.size() == 1)
-      {
-        res.subpolygons = generatePolygonVector(polygon);
-
-        res.path = secondOptimalPath;
-
-        return true;
-      }
-    }
-    else if (subPolygons.size() < 2)
+    if (subPolygons.size() < 2)
     {
       // if number of subpolygon is smaller than 2,
       // it means no valid path can be computed

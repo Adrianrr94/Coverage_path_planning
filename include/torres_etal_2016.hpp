@@ -295,12 +295,12 @@ bool computeConvexCoverage(const PointVector& polygon, double footprintWidth, do
   double stepWidth = footprintWidth * (1 - horizontalOverwrap);
 
   // calculate sweep direction of rotated polygon
-  // PointVector dir{ sweepDirection.opposedVertex, sweepDirection.baseEdge.front(), sweepDirection.baseEdge.back() };
+  PointVector dir{ sweepDirection.opposedVertex, sweepDirection.baseEdge.front(), sweepDirection.baseEdge.back() };
   // dir = rotatePoints(dir, -rotationAngle);
-  // Direction rotatedDir;
-  // rotatedDir.opposedVertex = dir.at(0);
-  // rotatedDir.baseEdge.front() = dir.at(1);
-  // rotatedDir.baseEdge.back() = dir.at(2);
+  Direction rotatedDir;
+  rotatedDir.opposedVertex = dir.at(0);
+  rotatedDir.baseEdge.front() = dir.at(1);
+  rotatedDir.baseEdge.back() = dir.at(2);
 
   int stepNum = std::ceil(distance / stepWidth);
 
@@ -541,70 +541,6 @@ PointVector identifyOptimalAlternative(const PointVector& polygon, const PointVe
                                        const geometry_msgs::Point& start)
 {
   return identifyOptimalAlternative(polygon, path, start, start);
-}
-
-/**
- * @brief Find second optimal path
- * @param polygon
- * @param footprintWidth
- * @param horizontalOverwrap
- * @param path
- * @return bool True if second optimal path exists
- */
-bool findSecondOptimalPath(const PointVector& polygon, double footprintWidth, double horizontalOverwrap,
-                           PointVector& path)
-{
-  std::vector<Direction> sweepDirections;
-  PointVector convexHull = computeConvexHull(polygon);
-  LineSegmentVector edges = generateEdgeVector(convexHull, true);
-
-  // compute optimal sweep directions for each edge
-  for (const auto& edge : edges)
-  {
-    double maxDistance = 0;
-    Direction direction;
-    direction.baseEdge = edge;
-    for (const auto& vertex : convexHull)
-    {
-      double distance = calculateDistance(edge, vertex);
-
-      // optimal sweep direction for a edge is the direction with the largest distance
-      if (distance > maxDistance)
-      {
-        maxDistance = distance;
-        direction.opposedVertex = vertex;
-      }
-    }
-    sweepDirections.push_back(direction);
-  }
-
-  // compute second optimal path which has the shortest coverage path
-  double pathLength = 0;
-  PointVector tempPath;
-  for (const auto& sweepDirection : sweepDirections)
-  {
-    PointVector p;
-
-    // isValidPath is true if computed coverage does not have intersection
-    bool isValidPath = computeConvexCoverage(polygon, footprintWidth, horizontalOverwrap, sweepDirection, p);
-
-    // second optimal path is the shortest path without intersection
-    if (isValidPath and ((calculatePathLength(tempPath) < pathLength) or (pathLength == 0)))
-    {
-      tempPath = p;
-      pathLength = calculatePathLength(tempPath);
-    }
-  }
-
-  if (tempPath.size() <= 1)
-  {
-    return false;
-  }
-  else
-  {
-    path = tempPath;
-    return true;
-  }
 }
 
 /**

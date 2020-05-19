@@ -45,15 +45,10 @@ roslint_cpp()
 roslint_python()
 
 # Executables
-add_executable(torres_etal_2016 src/torres_etal_2016.cpp)
+add_executable(zig_zag_trajectory src/torres_etal_2016.cpp)
 
-add_dependencies(torres_etal_2016 ${PROJECT_NAME}_generate_messages_cpp)
+add_dependencies(zig_zag_trajectory ${PROJECT_NAME}_generate_messages_cpp)
 
-target_link_libraries(torres_etal_2016 ${catkin_LIBRARIES})
+target_link_libraries(zig_zag_trajectory ${catkin_LIBRARIES})
 
-# Tests
-catkin_add_gtest(test_torres_etal_2016 test/test_torres_etal_2016.cpp)
-catkin_add_gtest(test_cgutil test/test_cgutil.cpp)
-
-target_link_libraries(test_torres_etal_2016 ${catkin_LIBRARIES})
-target_link_libraries(test_cgutil ${catkin_LIBRARIES})
+target_link_libraries(zig_zag_trajectory ${catkin_LIBRARIES})
