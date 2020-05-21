@@ -644,6 +644,7 @@ PointVector computeMultiplePolygonCoverage(std::vector<PointVector> subPolygons,
           if (computeConvexCoverage(polygon, footprintWidth, horizontalOverwrap, partPath) == false)
           {
             hasIntersection = true;
+            std::cout << "Path has intersections" << std::endl;
             break;
           }
 

@@ -120,7 +120,7 @@ bool plan(cpp_uav::Torres16::Request& req, cpp_uav::Torres16::Response& res)
     {
       // if number of subpolygon is smaller than 2,
       // it means no valid path can be computed
-      ROS_ERROR("Unable to generate path.");
+      ROS_ERROR("Unable to generate path. The polygon cannot be divided");
       return true;
     }
 
