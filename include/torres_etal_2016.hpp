@@ -293,6 +293,7 @@ bool computeConvexCoverage(const PointVector& polygon, double footprintWidth, do
   }
 
   double stepWidth = footprintWidth * (1 - horizontalOverwrap);
+  //double stepLenght = footprintLenght * (1 - verticalOverwrap);
 
   // calculate sweep direction of rotated polygon
   PointVector dir{ sweepDirection.opposedVertex, sweepDirection.baseEdge.front(), sweepDirection.baseEdge.back() };
@@ -303,7 +304,7 @@ bool computeConvexCoverage(const PointVector& polygon, double footprintWidth, do
   rotatedDir.baseEdge.back() = dir.at(2);
 
   int stepNum = std::ceil(distance / stepWidth);
-
+  //int step_horizonatl = std::ceil ()
   LineSegmentVector sweepLines;
 
   // generate list of sweep lines which is horizontal against the base edge
@@ -337,9 +338,9 @@ bool computeConvexCoverage(const PointVector& polygon, double footprintWidth, do
         intersections.push_back(localizeIntersection(edge, sweepLine));
         ++intersectionCount;
       }
-
+      //std::cout << "Number of intersections: " << intersectionCount << std::endl;
       // sweep line in optimal path does not have more than 2 intersections
-      if (intersectionCount >= 3)
+      if (intersectionCount >= 3)//3
       {
         return false;
       }
@@ -355,10 +356,11 @@ bool computeConvexCoverage(const PointVector& polygon, double footprintWidth, do
   //path = rotatePoints(rotatedPath, rotationAngle);
   path = rotatedPath;
 
-  if (hasIntersection(generateEdgeVector(polygon, true), generateEdgeVector(path, false)) == true)
-  {
-    return false;
-  }
+  // if (hasIntersection(generateEdgeVector(polygon, true), generateEdgeVector(path, false)) == true)
+  // {
+  //   std::cout << "Error, path has intersections" << std::endl;
+  //   return false;
+  // }
 
   return true;
 }
