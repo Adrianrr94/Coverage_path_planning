@@ -136,7 +136,7 @@ Direction identifyOptimalSweepDir(const PointVector& polygon, double& distance)
  * @return PointVector
  * @details Reshape given path so that generated path becomes the sequence of "C" shapes and add padding
  */
-PointVector reshapePath(const PointVector& path, double padding)
+PointVector reshapePath(const PointVector& path, double padding, double step)
 {
   PointVector zigzagPath;
 
@@ -160,6 +160,7 @@ PointVector reshapePath(const PointVector& path, double padding)
 
           // be careful with the order of points
           zigzagPath.push_back(p1);
+          divideHorizontalPath(p1, p2, zigzagPath, step);
           zigzagPath.push_back(p2);
         }
         // in case that the first point of the traverse is located on RIGHT side
@@ -174,6 +175,7 @@ PointVector reshapePath(const PointVector& path, double padding)
 
           // be careful with the order of points
           zigzagPath.push_back(p2);
+          divideHorizontalPath(p2, p1, zigzagPath, step);
           zigzagPath.push_back(p1);
         }
       }
@@ -213,6 +215,7 @@ PointVector reshapePath(const PointVector& path, double padding)
 
           // be careful with the order of points
           zigzagPath.push_back(p1);
+          divideHorizontalPath(p1, p2, zigzagPath, step);
           zigzagPath.push_back(p2);
         }
         // in case that the first point of the traverse is located on LEFT side
@@ -227,6 +230,7 @@ PointVector reshapePath(const PointVector& path, double padding)
 
           // be careful with the order of points
           zigzagPath.push_back(p2);
+          divideHorizontalPath(p2, p1, zigzagPath, step);
           zigzagPath.push_back(p1);
         }
       }
@@ -252,7 +256,25 @@ PointVector reshapePath(const PointVector& path, double padding)
   }
   return zigzagPath;
 }
-
+/**
+ * @brief Divided a line given a fixed distance
+ * @param p1 point with lower x that defined the line
+ * @param p2 point with higher x that defined the line
+ * @param step fixed distance between two waypoints
+ * @param path Path of coverage path
+ */
+void divideHorizontalPath(const geometry_msgs::Point& p1, const geometry_msgs::Point& p2, PointVector& path, double step)
+{
+  double distance = calculateDistance(p1,p2);
+  int stepNum = std::ceil(distance / step);
+  geometry_msgs::Point point;
+  for (i=1; i <stepNum; i++)
+  {
+    point.x = p1.x + i*step;
+    point.y = p1.y;
+    path.push_back(point);
+  }
+}
 /**
  * @brief Compute coverage path for convex polygon
  * @param polygon Coverage path is calculated on this region
@@ -262,7 +284,8 @@ PointVector reshapePath(const PointVector& path, double padding)
  * @param path Path of coverage path
  * @return bool True if path does not intersect with polygon
  */
-bool computeConvexCoverage(const PointVector& polygon, double footprintWidth, double horizontalOverwrap,
+bool computeConvexCoverage(const PointVector& polygon, double footprintWidth, double footprintLength,
+                           double horizontalOverwrap, double verticalOverwrap,
                            const Direction& sweepDirection, double distance, PointVector& path)
 {
   // Unable to make polygon with less than 3 points
@@ -293,7 +316,7 @@ bool computeConvexCoverage(const PointVector& polygon, double footprintWidth, do
   }
 
   double stepWidth = footprintWidth * (1 - horizontalOverwrap);
-  //double stepLenght = footprintLenght * (1 - verticalOverwrap);
+  double stepLength = footprintLength * (1 - verticalOverwrap);
 
   // calculate sweep direction of rotated polygon
   PointVector dir{ sweepDirection.opposedVertex, sweepDirection.baseEdge.front(), sweepDirection.baseEdge.back() };
@@ -351,7 +374,7 @@ bool computeConvexCoverage(const PointVector& polygon, double footprintWidth, do
   std::stable_sort(intersections.begin(), intersections.end(),
                    [](const geometry_msgs::Point& p1, const geometry_msgs::Point& p2) { return p1.y < p2.y; });
 
-  PointVector rotatedPath = reshapePath(intersections, padding);
+  PointVector rotatedPath = reshapePath(intersections, padding, stepLength);
 
   //path = rotatePoints(rotatedPath, rotationAngle);
   path = rotatedPath;
