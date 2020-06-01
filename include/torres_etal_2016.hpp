@@ -129,6 +129,33 @@ Direction identifyOptimalSweepDir(const PointVector& polygon, double& distance)
 
   return sweepDirection;
 }
+
+/**
+ * @brief Divided a line given a fixed distance
+ * @param p1 point with lower x that defined the line
+ * @param p2 point with higher x that defined the line
+ * @param step fixed distance between two waypoints
+ * @param path Path of coverage path
+ */
+void divideHorizontalPath(const geometry_msgs::Point& p1, const geometry_msgs::Point& p2, PointVector& path, double step)
+{
+  double distance = calculateDistance(p1,p2);
+  int stepNum = std::ceil(distance / step);
+  int sign = 1;
+  geometry_msgs::Point point;
+  if(p1.x > p2.x){
+    sign = -1;
+  }
+  std::cout << "Puntos generados entre: " << p1.x << " y " << p2.x << std::endl;
+  for (int i=1; i <stepNum; i++)
+  {
+    point.x = p1.x + i*step*sign;
+    point.y = p1.y;
+    std::cout << point.x << std::endl;
+    path.push_back(point);
+  }
+}
+
 /**
  * @brief Reshape given path
  * @param path The sweep lines of path should be horizontal about x axis
@@ -157,7 +184,7 @@ PointVector reshapePath(const PointVector& path, double padding, double step)
           // add padding
           p1.x += padding;
           p2.x -= padding;
-
+          std::cout << "If 1, linea: " << i << std::endl;
           // be careful with the order of points
           zigzagPath.push_back(p1);
           divideHorizontalPath(p1, p2, zigzagPath, step);
@@ -172,7 +199,7 @@ PointVector reshapePath(const PointVector& path, double padding, double step)
           // add padding
           p1.x -= padding;
           p2.x += padding;
-
+          std::cout << "If 2, linea: " << i << std::endl;
           // be careful with the order of points
           zigzagPath.push_back(p2);
           divideHorizontalPath(p2, p1, zigzagPath, step);
@@ -212,7 +239,7 @@ PointVector reshapePath(const PointVector& path, double padding, double step)
           // add padding
           p1.x -= padding;
           p2.x += padding;
-
+          std::cout << "If 3, linea: " << i << std::endl;
           // be careful with the order of points
           zigzagPath.push_back(p1);
           divideHorizontalPath(p1, p2, zigzagPath, step);
@@ -227,7 +254,7 @@ PointVector reshapePath(const PointVector& path, double padding, double step)
           // add padding
           p1.x += padding;
           p2.x -= padding;
-
+          std::cout << "If 4, linea: " << i << std::endl;
           // be careful with the order of points
           zigzagPath.push_back(p2);
           divideHorizontalPath(p2, p1, zigzagPath, step);
@@ -256,25 +283,7 @@ PointVector reshapePath(const PointVector& path, double padding, double step)
   }
   return zigzagPath;
 }
-/**
- * @brief Divided a line given a fixed distance
- * @param p1 point with lower x that defined the line
- * @param p2 point with higher x that defined the line
- * @param step fixed distance between two waypoints
- * @param path Path of coverage path
- */
-void divideHorizontalPath(const geometry_msgs::Point& p1, const geometry_msgs::Point& p2, PointVector& path, double step)
-{
-  double distance = calculateDistance(p1,p2);
-  int stepNum = std::ceil(distance / step);
-  geometry_msgs::Point point;
-  for (i=1; i <stepNum; i++)
-  {
-    point.x = p1.x + i*step;
-    point.y = p1.y;
-    path.push_back(point);
-  }
-}
+
 /**
  * @brief Compute coverage path for convex polygon
  * @param polygon Coverage path is calculated on this region
@@ -378,7 +387,10 @@ bool computeConvexCoverage(const PointVector& polygon, double footprintWidth, do
 
   //path = rotatePoints(rotatedPath, rotationAngle);
   path = rotatedPath;
-
+  std::cout << "Path size: " << path.size() << std::endl;
+  for (const auto& point : path){
+    std::cout << point.x << "/" << point.y << std::endl;
+  }
   // if (hasIntersection(generateEdgeVector(polygon, true), generateEdgeVector(path, false)) == true)
   // {
   //   std::cout << "Error, path has intersections" << std::endl;
@@ -396,12 +408,12 @@ bool computeConvexCoverage(const PointVector& polygon, double footprintWidth, do
  * @param path Path of coverage path
  * @return bool True if path does not intersect with polygon
  */
-bool computeConvexCoverage(const PointVector& polygon, double footprintWidth, double horizontalOverwrap,
+bool computeConvexCoverage(const PointVector& polygon, double footprintWidth, double footprintLength, double horizontalOverwrap, double verticalOverwrap,
                            PointVector& path)
 {
   double distance;
   Direction sweepDirection = identifyOptimalSweepDir(polygon, distance);
-  return computeConvexCoverage(polygon, footprintWidth, horizontalOverwrap, sweepDirection, distance, path);
+  return computeConvexCoverage(polygon, footprintWidth, footprintLength, horizontalOverwrap, verticalOverwrap, sweepDirection, distance, path);
 }
 
 /**
@@ -600,7 +612,8 @@ bool isAdjacent(const PointVector& polygon1, const PointVector& polygon2)
  * @details See section 6.2 of torres et al. 2016 for the detail
  */
 PointVector computeMultiplePolygonCoverage(std::vector<PointVector> subPolygons, double footprintWidth,
-                                           double horizontalOverwrap, int adjacencyCriteria = 1)
+                                           double footprintLength,double horizontalOverwrap, 
+                                           double verticalOverwrap, int adjacencyCriteria = 1)
 {
   PointVector path;
 
@@ -666,7 +679,7 @@ PointVector computeMultiplePolygonCoverage(std::vector<PointVector> subPolygons,
           }
 
           // break if computed path has intersections
-          if (computeConvexCoverage(polygon, footprintWidth, horizontalOverwrap, partPath) == false)
+          if (computeConvexCoverage(polygon, footprintWidth,footprintLength, horizontalOverwrap, verticalOverwrap, partPath) == false)
           {
             hasIntersection = true;
             std::cout << "Path has intersections" << std::endl;
@@ -698,7 +711,7 @@ PointVector computeMultiplePolygonCoverage(std::vector<PointVector> subPolygons,
           PointVector polygon = subPolygons.at(*itr);
 
           // break if computed path has intersections
-          if (computeConvexCoverage(polygon, footprintWidth, horizontalOverwrap, partPath) == false)
+          if (computeConvexCoverage(polygon, footprintWidth, footprintLength, horizontalOverwrap, verticalOverwrap, partPath) == false)
           {
             hasIntersection = true;
             break;
@@ -729,7 +742,7 @@ PointVector computeMultiplePolygonCoverage(std::vector<PointVector> subPolygons,
           PointVector polygon = subPolygons.at(*itr);
 
           // break if computed path has intersections
-          if (computeConvexCoverage(polygon, footprintWidth, horizontalOverwrap, partPath) == false)
+          if (computeConvexCoverage(polygon, footprintWidth, footprintLength, horizontalOverwrap, verticalOverwrap, partPath) == false)
           {
             hasIntersection = true;
             break;

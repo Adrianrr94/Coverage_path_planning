@@ -89,7 +89,7 @@ bool plan(cpp_uav::Torres16::Request& req, cpp_uav::Torres16::Response& res)
   verticalOverwrap = req.vertical_overwrap;
 
   // isOptimal is true if computed path does not have intersection with polygon
-  bool isOptimal = computeConvexCoverage(polygon, footprintWidth.data, horizontalOverwrap.data, candidatePath);
+  bool isOptimal = computeConvexCoverage(polygon, footprintWidth.data, footprintLength.data, horizontalOverwrap.data, verticalOverwrap.data, candidatePath);
 
   if (isOptimal == true)
   {
@@ -112,7 +112,7 @@ bool plan(cpp_uav::Torres16::Request& req, cpp_uav::Torres16::Response& res)
     for (const auto& polygon : subPolygons)
     {
       PointVector partialPath;
-      computeConvexCoverage(polygon, footprintWidth.data, horizontalOverwrap.data, partialPath);
+      computeConvexCoverage(polygon, footprintWidth.data, footprintLength.data, horizontalOverwrap.data, verticalOverwrap.data, partialPath);
       pathLengthSum += calculatePathLength(partialPath);
     }
 
@@ -129,7 +129,7 @@ bool plan(cpp_uav::Torres16::Request& req, cpp_uav::Torres16::Response& res)
 
     // compute coverage path of subpolygons
     PointVector multipleCoveragePath =
-        computeMultiplePolygonCoverage(subPolygons, footprintWidth.data, horizontalOverwrap.data);
+        computeMultiplePolygonCoverage(subPolygons, footprintWidth.data, footprintLength.data, horizontalOverwrap.data, verticalOverwrap.data);
 
     res.path = multipleCoveragePath;
   }
