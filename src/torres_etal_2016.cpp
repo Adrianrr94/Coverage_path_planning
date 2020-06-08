@@ -102,6 +102,7 @@ bool plan(cpp_uav::Torres16::Request& req, cpp_uav::Torres16::Response& res)
   }
   else
   {
+    std::cout << "It's not optimal" << std::endl;
     std::vector<PointVector> subPolygons = decomposePolygon(polygon);
 
     // sum of length of all coverage path
@@ -109,13 +110,13 @@ bool plan(cpp_uav::Torres16::Request& req, cpp_uav::Torres16::Response& res)
 
     int i = 1;
     // compute length of coverage path of each subpolygon
-    for (const auto& polygon : subPolygons)
+   /* for (const auto& polygon : subPolygons)
     {
       PointVector partialPath;
       computeConvexCoverage(polygon, footprintWidth.data, footprintLength.data, horizontalOverwrap.data, verticalOverwrap.data, partialPath);
       pathLengthSum += calculatePathLength(partialPath);
     }
-
+*/
     if (subPolygons.size() < 2)
     {
       // if number of subpolygon is smaller than 2,
@@ -132,8 +133,11 @@ bool plan(cpp_uav::Torres16::Request& req, cpp_uav::Torres16::Response& res)
         computeMultiplePolygonCoverage(subPolygons, footprintWidth.data, footprintLength.data, horizontalOverwrap.data, verticalOverwrap.data);
 
     res.path = multipleCoveragePath;
+    
   }
-
+  /*for (const auto& point : res.path){
+      std::cout << point.x << "/" << point.y << std::endl;
+  }*/
   return true;
 }
 

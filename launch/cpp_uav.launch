@@ -1,6 +1,6 @@
 <launch>
 
-    <node name="specify_rect" pkg="cpp_uav" type="specify_rect.py" output="screen" />
+    <node name="specify_rect" pkg="zig_zag_trajectory" type="specify_rect.py" output="screen" />
     <node name="zig_zag_trajectory" pkg="zig_zag_trajectory" type="zig_zag_trajectory" output="screen"/>
 
 </launch>

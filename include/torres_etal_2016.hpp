@@ -109,7 +109,7 @@ Direction identifyOptimalSweepDir(const PointVector& polygon, double& distance)
     }
     else if (vertex.y < min_y){
       min_y = vertex.y;
-      max_x = vertex.x;
+      min_x = vertex.x;
     }
     cont++;
   }
@@ -126,7 +126,8 @@ Direction identifyOptimalSweepDir(const PointVector& polygon, double& distance)
   edge[0] = p2;
   edge[1] = p3;
   sweepDirection.baseEdge = edge;
-
+  std::cout << "Line segment: " << p2.x << "/" << p2.y << " y " << p3.x << "/" << p3.y << std::endl;
+  std::cout << "Opposed vertex: " << p1.x << "/" << p1.y << std::endl;
   return sweepDirection;
 }
 
@@ -146,7 +147,7 @@ void divideHorizontalPath(const geometry_msgs::Point& p1, const geometry_msgs::P
   if(p1.x > p2.x){
     sign = -1;
   }
-  std::cout << "Puntos generados entre: " << p1.x << " y " << p2.x << std::endl;
+  //std::cout << "Puntos generados entre: " << p1.x << "/" << p1.y << " y " << p2.x << "/" << p2.y << std::endl;
   for (int i=1; i <stepNum; i++)
   {
     point.x = p1.x + i*step*sign;
@@ -184,10 +185,10 @@ PointVector reshapePath(const PointVector& path, double padding, double step)
           // add padding
           p1.x += padding;
           p2.x -= padding;
-          std::cout << "If 1, linea: " << i << std::endl;
+          //std::cout << "If 1, linea: " << i << std::endl;
           // be careful with the order of points
           zigzagPath.push_back(p1);
-          divideHorizontalPath(p1, p2, zigzagPath, step);
+          //divideHorizontalPath(p1, p2, zigzagPath, step);
           zigzagPath.push_back(p2);
         }
         // in case that the first point of the traverse is located on RIGHT side
@@ -199,10 +200,10 @@ PointVector reshapePath(const PointVector& path, double padding, double step)
           // add padding
           p1.x -= padding;
           p2.x += padding;
-          std::cout << "If 2, linea: " << i << std::endl;
+          //std::cout << "If 2, linea: " << i << std::endl;
           // be careful with the order of points
           zigzagPath.push_back(p2);
-          divideHorizontalPath(p2, p1, zigzagPath, step);
+          //divideHorizontalPath(p2, p1, zigzagPath, step);
           zigzagPath.push_back(p1);
         }
       }
@@ -239,10 +240,10 @@ PointVector reshapePath(const PointVector& path, double padding, double step)
           // add padding
           p1.x -= padding;
           p2.x += padding;
-          std::cout << "If 3, linea: " << i << std::endl;
+          //std::cout << "If 3, linea: " << i << std::endl;
           // be careful with the order of points
           zigzagPath.push_back(p1);
-          divideHorizontalPath(p1, p2, zigzagPath, step);
+          //divideHorizontalPath(p1, p2, zigzagPath, step);
           zigzagPath.push_back(p2);
         }
         // in case that the first point of the traverse is located on LEFT side
@@ -254,10 +255,10 @@ PointVector reshapePath(const PointVector& path, double padding, double step)
           // add padding
           p1.x += padding;
           p2.x -= padding;
-          std::cout << "If 4, linea: " << i << std::endl;
+          //std::cout << "If 4, linea: " << i << std::endl;
           // be careful with the order of points
           zigzagPath.push_back(p2);
-          divideHorizontalPath(p2, p1, zigzagPath, step);
+          //divideHorizontalPath(p2, p1, zigzagPath, step);
           zigzagPath.push_back(p1);
         }
       }
@@ -335,26 +336,39 @@ bool computeConvexCoverage(const PointVector& polygon, double footprintWidth, do
   rotatedDir.baseEdge.front() = dir.at(1);
   rotatedDir.baseEdge.back() = dir.at(2);
 
-  int stepNum = std::ceil(distance / stepWidth);
+  //int stepNum = std::ceil(distance / stepWidth);
   //int step_horizonatl = std::ceil ()
   LineSegmentVector sweepLines;
+  LineSegment ar;
+  geometry_msgs::Point v1,v2,v3;
+  v1.x = minX;
+  v1.y = rotatedDir.baseEdge.at(0).y + padding;
+  v2.x = minX;
+  v2.y = rotatedDir.opposedVertex.y - padding;
+  v3.x = maxX;
+  v3.y = v2.y;
 
+  double distance_ver = calculateDistance(v1,v2);
+  int stepNum = std::ceil(distance_ver/stepWidth);
   // generate list of sweep lines which is horizontal against the base edge
   for (int i = 0; i < stepNum; ++i)
   {
-    LineSegment ar;
+    LineSegment ar_;
     geometry_msgs::Point p1, p2;
     p1.x = minX;
     p1.y = rotatedDir.baseEdge.at(0).y + (i * stepWidth) + padding;
     p2.x = maxX;
     p2.y = rotatedDir.baseEdge.at(1).y + (i * stepWidth) + padding;
+    std::cout << "Linea generada en : " << p1.x << "/" << p1.y << " y "<< p2.x << "/" << p2.y << std::endl;
+    ar_.at(0) = p1;
+    ar_.at(1) = p2;
 
-    ar.at(0) = p1;
-    ar.at(1) = p2;
-
-    sweepLines.push_back(ar);
+    sweepLines.push_back(ar_);
   }
-
+  std::cout << "Linea generada en : " << v2.x << "/" << v2.y << " y "<< v3.x << "/" << v3.y << std::endl;
+  ar.at(0) = v2;
+  ar.at(1) = v3;
+  sweepLines.push_back(ar);
   // Localize intersections of sweeplines and edges of rotated polygon
   LineSegmentVector rotatedEdges = generateEdgeVector(rotatedPolygon, true);
 
@@ -383,19 +397,18 @@ bool computeConvexCoverage(const PointVector& polygon, double footprintWidth, do
   std::stable_sort(intersections.begin(), intersections.end(),
                    [](const geometry_msgs::Point& p1, const geometry_msgs::Point& p2) { return p1.y < p2.y; });
 
-  PointVector rotatedPath = reshapePath(intersections, padding, stepLength);
+  const double length_padding = footprintLength/2;
+  PointVector rotatedPath = reshapePath(intersections, length_padding, stepLength);
 
   //path = rotatePoints(rotatedPath, rotationAngle);
   path = rotatedPath;
-  std::cout << "Path size: " << path.size() << std::endl;
-  for (const auto& point : path){
-    std::cout << point.x << "/" << point.y << std::endl;
+  //std::cout << "Path size: " << path.size() << std::endl;
+  
+  if (hasIntersection(generateEdgeVector(polygon, true), generateEdgeVector(path, false)) == true)
+  {
+    std::cout << "Error, path has intersections" << std::endl;
+    //return false;
   }
-  // if (hasIntersection(generateEdgeVector(polygon, true), generateEdgeVector(path, false)) == true)
-  // {
-  //   std::cout << "Error, path has intersections" << std::endl;
-  //   return false;
-  // }
 
   return true;
 }
@@ -549,18 +562,22 @@ PointVector identifyOptimalAlternative(const PointVector& polygon, const PointVe
   {
     case 1:
     {
+      //std::cout << "Se devuelve clockwise" << std::endl;
       return pathCW;
     }
     case 2:
     {
+      //std::cout << "Se devuelve counterclockwise" << std::endl;
       return pathCCW;
     }
     case 3:
     {
+      //std::cout << "Se devuelve opposite clockwise" << std::endl;
       return computeOppositePath(pathCW);
     }
     default:
     {
+      //std::cout << "Se devuelve opposite counterclockwise" << std::endl;
       return computeOppositePath(pathCCW);
     }
   }

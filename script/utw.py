@@ -84,11 +84,12 @@ class PolygonBuilder(object):
         #  ros param's id for the footprint_width of the rfid antenna
         self.param_std_footprint_width = 'drone6/footprint_width'
 
+        #width = Alto de la cámara, length = ancho de la cámara.
         if rospy.has_param(self.param_std_footprint_width):
             self.footprint_width = rospy.get_param(self.param_std_footprint_width)
         else:
             rospy.logerr("Error. Param " + self.param_std_footprint_width + " not found")
-            self.footprint_width = Float64(4) 
+            self.footprint_width = Float64(2.5) 
         # @var param_std_footprint_length
         #  ros param's id for the footprint_length of the rfid antenna
         self.param_std_footprint_length = 'drone6/footprint_length'
@@ -97,7 +98,7 @@ class PolygonBuilder(object):
             self.footprint_length = rospy.get_param(self.param_std_footprint_length)
         else:
             rospy.logerr("Error. Param " + self.param_std_footprint_length + " not found")
-            self.footprint_length = Float64(2.5)        
+            self.footprint_length = Float64(4)        
         # @var param_std_horizontal_overwrap
         #  ros param's id for the horizontal_overwrap for the coverage path planning
         self.param_std_horizontal_overwrap = 'drone6/horizontal_overwrap'
@@ -106,7 +107,7 @@ class PolygonBuilder(object):
             self.horizontal_overwrap = rospy.get_param(self.param_std_horizontal_overwrap)
         else:
             rospy.logerr("Error. Param " + self.param_std_horizontal_overwrap + " not found")
-            self.horizontal_overwrap = Float64(0.6)        
+            self.horizontal_overwrap = Float64(0.8)        
 
         # @var param_std_vertical_overwrap
         #  ros param's id for the vertical_overwrap for the coverage path planning
@@ -115,7 +116,7 @@ class PolygonBuilder(object):
             self.vertical_overwrap = rospy.get_param(self.param_std_vertical_overwrap)
         else:
             rospy.logerr("Error. Param " + self.param_std_vertical_overwrap + " not found")
-            self.vertical_overwrap = Float64(0.6)
+            self.vertical_overwrap = Float64(0.8)
 
         # @var coverage_params
         #  Dictionary of coverage params
