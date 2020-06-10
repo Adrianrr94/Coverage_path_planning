@@ -126,8 +126,8 @@ Direction identifyOptimalSweepDir(const PointVector& polygon, double& distance)
   edge[0] = p2;
   edge[1] = p3;
   sweepDirection.baseEdge = edge;
-  std::cout << "Line segment: " << p2.x << "/" << p2.y << " y " << p3.x << "/" << p3.y << std::endl;
-  std::cout << "Opposed vertex: " << p1.x << "/" << p1.y << std::endl;
+  //std::cout << "Line segment: " << p2.x << "/" << p2.y << " y " << p3.x << "/" << p3.y << std::endl;
+  //std::cout << "Opposed vertex: " << p1.x << "/" << p1.y << std::endl;
   return sweepDirection;
 }
 
@@ -181,30 +181,40 @@ PointVector reshapePath(const PointVector& path, double padding, double step)
         {
           geometry_msgs::Point p1 = path.at(2 * i);
           geometry_msgs::Point p2 = path.at(2 * i + 1);
-
-          // add padding
-          p1.x += padding;
-          p2.x -= padding;
-          //std::cout << "If 1, linea: " << i << std::endl;
-          // be careful with the order of points
-          zigzagPath.push_back(p1);
-          //divideHorizontalPath(p1, p2, zigzagPath, step);
-          zigzagPath.push_back(p2);
+          if((p2.x-p1.x) > padding){
+            // add padding
+            p1.x += padding;
+            p2.x -= padding;
+            //std::cout << "If 1, linea: " << i << std::endl;
+            // be careful with the order of points
+            zigzagPath.push_back(p1);
+            //divideHorizontalPath(p1, p2, zigzagPath, step);
+            zigzagPath.push_back(p2);
+          }
+          else{
+            p1.x = (p1.x + p2.x)/2;
+            zigzagPath.push_back(p1);
+          }
         }
         // in case that the first point of the traverse is located on RIGHT side
         else
         {
           geometry_msgs::Point p1 = path.at(2 * i);
           geometry_msgs::Point p2 = path.at(2 * i + 1);
-
-          // add padding
-          p1.x -= padding;
-          p2.x += padding;
-          //std::cout << "If 2, linea: " << i << std::endl;
-          // be careful with the order of points
-          zigzagPath.push_back(p2);
-          //divideHorizontalPath(p2, p1, zigzagPath, step);
-          zigzagPath.push_back(p1);
+          if ((p1.x-p2.x)>padding){
+            // add padding
+            p1.x -= padding;
+            p2.x += padding;
+            //std::cout << "If 2, linea: " << i << std::endl;
+            // be careful with the order of points
+            zigzagPath.push_back(p2);
+            //divideHorizontalPath(p2, p1, zigzagPath, step);
+            zigzagPath.push_back(p1);
+          }
+          else{
+            p1.x = (p1.x + p2.x)/2;
+            zigzagPath.push_back(p1);
+          }
         }
       }
       // in case that the traverse has only one vertex
@@ -236,30 +246,40 @@ PointVector reshapePath(const PointVector& path, double padding, double step)
         {
           geometry_msgs::Point p1 = path.at(2 * i);
           geometry_msgs::Point p2 = path.at(2 * i + 1);
-
-          // add padding
-          p1.x -= padding;
-          p2.x += padding;
-          //std::cout << "If 3, linea: " << i << std::endl;
-          // be careful with the order of points
-          zigzagPath.push_back(p1);
-          //divideHorizontalPath(p1, p2, zigzagPath, step);
-          zigzagPath.push_back(p2);
+          if((p1.x-p2.x)>padding){
+            // add padding
+            p1.x -= padding;
+            p2.x += padding;
+            //std::cout << "If 3, linea: " << i << std::endl;
+            // be careful with the order of points
+            zigzagPath.push_back(p1);
+            //divideHorizontalPath(p1, p2, zigzagPath, step);
+            zigzagPath.push_back(p2);
+          }
+          else{
+            p1.x = (p1.x + p2.x)/2;
+            zigzagPath.push_back(p1);
+          }
         }
         // in case that the first point of the traverse is located on LEFT side
         else
         {
           geometry_msgs::Point p1 = path.at(2 * i);
           geometry_msgs::Point p2 = path.at(2 * i + 1);
-
-          // add padding
-          p1.x += padding;
-          p2.x -= padding;
-          //std::cout << "If 4, linea: " << i << std::endl;
-          // be careful with the order of points
-          zigzagPath.push_back(p2);
-          //divideHorizontalPath(p2, p1, zigzagPath, step);
-          zigzagPath.push_back(p1);
+          if((p2.x-p1.x)>padding){
+            // add padding
+            p1.x += padding;
+            p2.x -= padding;
+            //std::cout << "If 4, linea: " << i << std::endl;
+            // be careful with the order of points
+            zigzagPath.push_back(p2);
+            //divideHorizontalPath(p2, p1, zigzagPath, step);
+            zigzagPath.push_back(p1);
+          }
+          else{
+            p1.x = (p1.x + p2.x)/2;
+            zigzagPath.push_back(p1);
+          }
         }
       }
       // in case that the traverse has only one vertex
@@ -359,13 +379,13 @@ bool computeConvexCoverage(const PointVector& polygon, double footprintWidth, do
     p1.y = rotatedDir.baseEdge.at(0).y + (i * stepWidth) + padding;
     p2.x = maxX;
     p2.y = rotatedDir.baseEdge.at(1).y + (i * stepWidth) + padding;
-    std::cout << "Linea generada en : " << p1.x << "/" << p1.y << " y "<< p2.x << "/" << p2.y << std::endl;
+    //std::cout << "Linea generada en : " << p1.x << "/" << p1.y << " y "<< p2.x << "/" << p2.y << std::endl;
     ar_.at(0) = p1;
     ar_.at(1) = p2;
 
     sweepLines.push_back(ar_);
   }
-  std::cout << "Linea generada en : " << v2.x << "/" << v2.y << " y "<< v3.x << "/" << v3.y << std::endl;
+  //std::cout << "Linea generada en : " << v2.x << "/" << v2.y << " y "<< v3.x << "/" << v3.y << std::endl;
   ar.at(0) = v2;
   ar.at(1) = v3;
   sweepLines.push_back(ar);
@@ -373,7 +393,7 @@ bool computeConvexCoverage(const PointVector& polygon, double footprintWidth, do
   LineSegmentVector rotatedEdges = generateEdgeVector(rotatedPolygon, true);
 
   PointVector intersections;
-
+  std::cout << "intersections" << std::endl;
   for (const auto& sweepLine : sweepLines)
   {
     int intersectionCount = 0;
@@ -382,6 +402,7 @@ bool computeConvexCoverage(const PointVector& polygon, double footprintWidth, do
       if (hasIntersection(sweepLine, edge))
       {
         intersections.push_back(localizeIntersection(edge, sweepLine));
+        std::cout << intersections.back().x << "/" << intersections.back().y << std::endl;
         ++intersectionCount;
       }
       //std::cout << "Number of intersections: " << intersectionCount << std::endl;

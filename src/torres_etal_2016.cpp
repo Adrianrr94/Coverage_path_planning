@@ -133,11 +133,12 @@ bool plan(cpp_uav::Torres16::Request& req, cpp_uav::Torres16::Response& res)
         computeMultiplePolygonCoverage(subPolygons, footprintWidth.data, footprintLength.data, horizontalOverwrap.data, verticalOverwrap.data);
 
     res.path = multipleCoveragePath;
-    
+  
   }
-  /*for (const auto& point : res.path){
-      std::cout << point.x << "/" << point.y << std::endl;
-  }*/
+  std::cout << "Path" << std::endl;
+  for (const auto& point : res.path){
+    std::cout << point.x << "/" << point.y << std::endl;
+  }
   return true;
 }
 
