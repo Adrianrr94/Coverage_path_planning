@@ -181,7 +181,7 @@ PointVector reshapePath(const PointVector& path, double padding, double step)
         {
           geometry_msgs::Point p1 = path.at(2 * i);
           geometry_msgs::Point p2 = path.at(2 * i + 1);
-          if((p2.x-p1.x) > padding){
+          if((p2.x-p1.x) > 2*padding){
             // add padding
             p1.x += padding;
             p2.x -= padding;
@@ -201,7 +201,7 @@ PointVector reshapePath(const PointVector& path, double padding, double step)
         {
           geometry_msgs::Point p1 = path.at(2 * i);
           geometry_msgs::Point p2 = path.at(2 * i + 1);
-          if ((p1.x-p2.x)>padding){
+          if ((p1.x-p2.x)>2*padding){
             // add padding
             p1.x -= padding;
             p2.x += padding;
@@ -246,7 +246,7 @@ PointVector reshapePath(const PointVector& path, double padding, double step)
         {
           geometry_msgs::Point p1 = path.at(2 * i);
           geometry_msgs::Point p2 = path.at(2 * i + 1);
-          if((p1.x-p2.x)>padding){
+          if((p1.x-p2.x)>2*padding){
             // add padding
             p1.x -= padding;
             p2.x += padding;
@@ -266,7 +266,7 @@ PointVector reshapePath(const PointVector& path, double padding, double step)
         {
           geometry_msgs::Point p1 = path.at(2 * i);
           geometry_msgs::Point p2 = path.at(2 * i + 1);
-          if((p2.x-p1.x)>padding){
+          if((p2.x-p1.x)>2*padding){
             // add padding
             p1.x += padding;
             p2.x -= padding;
